@@ -1,0 +1,33 @@
+version: '3.7'
+services:
+
+  php-fpm:
+    image: localhost/calculator-php-fpm:latest
+    restart: always
+    environment:
+      X_API_KEY: ${X_API_KEY}
+    container_name: calculator-php-fpm
+    volumes:
+      - ./:/var/www/html
+
+  nginx:
+    image: localhost/calculator-nginx:latest
+    restart: always
+    container_name: calculator-nginx
+    ports:
+      - ${APP_WEB_PORT}:80
+    environment:
+      PHP_UPSTREAM_CONTAINER: php-fpm
+      PHP_UPSTREAM_PORT: 9000
+      APP_WEB_PORT: ${APP_WEB_PORT}
+    depends_on:
+      - php-fpm
+    volumes:
+      - ./web:/var/www/html/web
+
+  swagger:
+    image: swaggerapi/swagger-ui:v5.16.2
+    environment:
+      URL: /swagger-ui/spec.yml
+    volumes:
+      - ./swagger/spec.yml:/usr/share/nginx/html/spec.yml
