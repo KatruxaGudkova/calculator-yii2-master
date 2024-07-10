@@ -6,7 +6,7 @@ use app\components\calculator\queue\ResultRenderer;
 use yii\console\Controller;
 use yii\console\ExitCode;
 use yii\helpers\Console;
-use app\models\CalculationRepository;
+use app\commands\CalculationRepository;
 
 class CalculateController extends Controller
 {

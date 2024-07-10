@@ -1,7 +1,7 @@
-openapi: "3.0.3"
+openapi: "3.1.3"
 info:
   title: API Калькулятор расчета стоимости доставки
-  version: 1.0.0
+  version: 1.1.0
   description: |
     *Калькулятор расчета стоимости доставки* - сервис расчета стоимости доставки  
     ### Возможности сервиса
@@ -11,9 +11,9 @@ info:
       - реестр типов сырья доствки
       - реестр стоимости доставки
     
-    Разработчик [{Екатерина}]({ссылка_на_профиль_github})
+    Разработчик [{Екатерина}]({https://github.com/KatruxaGudkova})
 servers:
-  - url: http://localhost:8077
+  - url: http://localhost:8055
     description: Сервер локального тестирования
 security:
   - tokenAuth: []
@@ -27,7 +27,7 @@ tags:
   - name: prices
     description: Регистр типов сырья
 paths:
-  /api/v1/months:
+  /api/v2/months:
     get:
       tags:
         - months
@@ -36,9 +36,45 @@ paths:
         '200':
           $ref: '#/components/responses/MonthSuccessfulResponse'
         '401':
-          description: Авторизация не выполнена
+          description: Не авторизован
 
-  /api/v1/tonnages:
+    post:
+      tags:
+        - months
+      summary: Добавить месяц
+      requestBody:
+        $ref: '#/components/requestBodies/MonthData'
+      responses:
+        '201':
+          description: Успешное добавление
+        '401':
+          description: Не авторизован
+        '400':
+          description: Месяц уже существует
+          content:
+            application/json:
+              example:
+                message: "Месяц уже существует"
+
+    delete:
+      tags:
+        - months
+      summary: Удалить месяц по имени
+      parameters:
+        - $ref: '#/components/parameters/MonthParameter'
+      responses:
+        '204':
+          description: Успешное удаление
+        '401':
+          description: Не авторизован
+        '404':
+          description: Тип сырья не найден
+          content:
+            application/json:
+              example:
+                message: "Тип сырья не найден"
+
+  /api/v2/tonnages:
     get:
       tags:
         - tonnages
@@ -47,9 +83,45 @@ paths:
         '200':
           $ref: '#/components/responses/TonnagesSuccessfulResponse'
         '401':
-          description: Авторизация не выполнена
+          description: Не авторизован
 
-  /api/v1/types:
+    post:
+      tags:
+        - tonnages
+      summary: Добавить тоннаж
+      requestBody:
+        $ref: '#/components/requestBodies/TonnageRequestBody'
+      responses:
+        '201':
+          description: Успешное добавление
+        '401':
+          description: Не авторизован
+        '400':
+          description: Тоннаж уже существует
+          content:
+            application/json:
+              example:
+                message: "Тоннаж уже существует"
+
+    delete:
+      tags:
+        - tonnages
+      summary: Удалить тоннаж по значению
+      parameters:
+        - $ref: '#/components/parameters/TonnageParameter'
+      responses:
+        '204':
+          description: Успешное удаление
+        '401':
+          description: Не авторизован
+        '404':
+          description: Тоннаж не найден
+          content:
+            application/json:
+              example:
+                message: "Тоннаж не найден"
+
+  /api/v2/types:
     get:
       tags:
         - types
@@ -58,9 +130,45 @@ paths:
         '200':
           $ref: '#/components/responses/TypesSuccessfulResponse'
         '401':
-          description: Авторизация не выполнена
+          description: Не авторизован
 
-  /api/v1/prices:
+    post:
+      tags:
+        - types
+      summary: Добавить тип сырья
+      requestBody:
+        $ref: '#/components/requestBodies/RawTypeRequestBody'
+      responses:
+        '201':
+          description: Успешное добавление
+        '401':
+          description: Не авторизован
+        '400':
+          description: Тип сырья уже существует
+          content:
+            application/json:
+              example:
+                message: "Тип сырья уже существует"
+
+    delete:
+      tags:
+        - types
+      summary: Удалить тип сырья по значению
+      parameters:
+        - $ref: '#/components/parameters/RawTypeParameter'
+      responses:
+        '204':
+          description: Успешное удаление
+        '401':
+          description: Не авторизован
+        '404':
+          description: Тип сырья не найден
+          content:
+            application/json:
+              example:
+                message: "Тип сырья не найден"
+
+  /api/v2/prices:
     get:
       tags:
         - prices
@@ -88,7 +196,99 @@ paths:
         '200':
           $ref: '#/components/responses/SuccessfulPricesResponse'
         '401':
-          description: Авторизация не выполнена
+          description: Не авторизован
+        '404':
+          description: Стоимость для выбранных параметров отсутствует
+          content:
+            application/json:
+              example:
+                message: "Стоимость для выбранных параметров отсутствует"
+    post:
+      tags:
+        - prices
+      summary: Добавить цену
+      requestBody:
+        $ref: '#/components/requestBodies/PriceRequestBody'
+      responses:
+        '201':
+          description: Успешное добавление
+        '401':
+          description: Не авторизован
+
+    patch:
+      tags:
+        - prices
+      summary: Обновить цену
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "январь"
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "шрот"
+        - name: tonnage
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 125
+      requestBody:
+        description: Данные по стоимости
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                price:
+                  type: integer
+                  example: 176
+      responses:
+        '200':
+          description: Успешное обновление
+        '401':
+          description: Не авторизован
+        '404':
+          description: Стоимость для выбранных параметров отсутствует
+          content:
+            application/json:
+              example:
+                message: "Стоимость для выбранных параметров отсутствует"
+    delete:
+      tags:
+        - prices
+      summary: Удалить цену
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "январь"
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "шрот"
+        - name: tonnage
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 125
+
+      responses:
+        '204':
+          description: Успешное удаление
+        '401':
+          description: Не авторизован
         '404':
           description: Стоимость для выбранных параметров отсутствует
           content:
@@ -102,7 +302,6 @@ components:
       type: apiKey
       in: header
       name: X-Api-Key
-
   responses:
     MonthSuccessfulResponse:
       description: Успешный ответ
@@ -168,3 +367,79 @@ components:
                   50: 145
                   75: 136
                   100: 138
+  requestBodies:
+    MonthData:
+      description: Данные месяца для добавления
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              month:
+                type: string
+                example: "декабрь"
+    TonnageRequestBody:
+      description: Данные тоннажа для добавления
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              tonnage:
+                type: integer
+                example: 125
+    RawTypeRequestBody:
+      description: Данные типа сырья для добавления
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "лактоза"
+    PriceRequestBody:
+      description: Данные по стоимости
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "шрот"
+              month:
+                type: string
+                example: "январь"
+              tonnage:
+                type: integer
+                example: 125
+              price:
+                type: integer
+                example: 176
+  parameters:
+    MonthParameter:
+      name: id
+      in: query
+      required: true
+      schema:
+        type: string
+        example: "декабрь"
+    TonnageParameter:
+      name: id
+      in: query
+      required: true
+      schema:
+        type: integer
+        example: 125
+    RawTypeParameter:
+      name: id
+      in: query
+      required: true
+      schema:
+        type: string
+        example: "лактоза"

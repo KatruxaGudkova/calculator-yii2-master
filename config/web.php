@@ -2,6 +2,7 @@
 
 $params = require __DIR__ . '/params.php';
 
+
 return [
     'id' => 'calculator-yii2',
     'name' => 'Калькулятор',
@@ -37,8 +38,13 @@ return [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
+            'enableStrictParsing' => false,
             'rules' => [
-                // ...
+                'GET,HEAD months' => 'month/index',
+                'GET,HEAD months/<id:\d+>' => 'month/view',
+                'POST months' => 'month/create',
+                'PUT,PATCH months/<id:\d+>' => 'month/update',
+                'DELETE months/<id:\d+>' => 'month/delete',
             ],
         ],
     'db' => require __DIR__ . '/db.php',
