@@ -3,7 +3,7 @@
 namespace app\controllers\api\v2;
 
 
-use yii\rest\Controller;
+use yii\web\Controller;
 use yii\web\Response;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
@@ -11,6 +11,8 @@ use yii\helpers\ArrayHelper;
 use app\models\Month;
 use yii\filters\VerbFilter;
 use app\components\filters\TokenAuthMiddleware;
+use app\repositories\MonthRepository;
+
 
 class MonthsController extends Controller
 {
@@ -23,10 +25,9 @@ class MonthsController extends Controller
             'verbFilter' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'index' => ['GET'],
-                    'create' => ['POST'],
-                    'delete' => ['POST', 'DELETE'],
+                    'index' => ['GET', 'POST', 'DELETE', 'OPTIONS'],
                 ],
+
             ],
             'corsFilter'=> [
                 'class' => \yii\filters\Cors::class
@@ -34,21 +35,34 @@ class MonthsController extends Controller
         ];
     }
 
-    public function actionIndex(): array
+    public function actionIndex(string $id = null): mixed
+    {
+        return match (\Yii::$app->getRequest()->getMethod()) {
+            'GET' => $this->list(),
+            'POST' => $this->create(),
+            'DELETE' => $this->delete($id),
+            'OPTIONS' => function() {
+                \Yii::$app->getResponse()->setStatusCode(204);
+            },
+            default => throw new MethodNotAllowedHttpException(),
+        };
+    }
+
+
+    private function list(): array
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $months = Month::find()->all();
-        return ArrayHelper::getColumn($months, 'name');
+       return (new MonthRepository())->getMonthNames();
     }
 
-    public function actionCreate()
+    private function create()
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
 
         $request = \Yii::$app->request;
-        $monthName = $request->post('months');
-
+        $monthName = $request->post('month');
+        
         if (!$monthName) {
             throw new BadRequestHttpException('Укажите месяц');
         }
@@ -56,7 +70,8 @@ class MonthsController extends Controller
         $month = new Month();
         $month->name = $monthName;
 
-        if ($month->save()) {
+        if ($month->validate()) {
+            (new MonthRepository())->create($monthName);
             \Yii::$app->response->statusCode = 201;
             return ['message' => 'Месяц успешно добавлен'];
         } else {
@@ -65,7 +80,7 @@ class MonthsController extends Controller
         }
     }
 
-    public function actionDelete($id)
+    private function delete($id)
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
 

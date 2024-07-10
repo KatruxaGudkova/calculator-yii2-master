@@ -35,18 +35,16 @@ return [
                 ],
             ],
         ],
-        'urlManager' => [
+       'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'enableStrictParsing' => false,
             'rules' => [
-                'GET,HEAD months' => 'month/index',
-                'GET,HEAD months/<id:\d+>' => 'month/view',
-                'POST months' => 'month/create',
-                'PUT,PATCH months/<id:\d+>' => 'month/update',
-                'DELETE months/<id:\d+>' => 'month/delete',
+                'GET,HEAD,POST,DELETE api/v2/months' => 'api/v2/months/index',
+
+
             ],
         ],
+
     'db' => require __DIR__ . '/db.php',
     ],
     'params' => $params,

@@ -34,3 +34,15 @@ FROM nginx:1.24.0-alpine as nginx
 COPY ./docker/nginx/templates /etc/nginx/templates
 
 EXPOSE 80
+
+# NODE JS
+FROM node:20.6.0-alpine3.18 as node
+
+ARG USER='node'
+ARG GROUP='node'
+
+RUN apk add python3 make g++ yarn
+
+WORKDIR /app
+
+USER ${USER}:${GROUP}

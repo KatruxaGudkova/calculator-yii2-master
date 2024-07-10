@@ -6,6 +6,11 @@
 
 use yii\widgets\ActiveForm;
 use yii\helpers\Html;
+if (getenv('RENDER_MODE') === 'SPA') {
+    require_once \Yii::getAlias('@app/web/index.html');
+    return;
+  }
+  
 ?>
 
 <style>
